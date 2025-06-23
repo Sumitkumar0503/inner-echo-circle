@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
-import { Calendar, Inbox, Settings, User } from 'lucide-react';
+import { Calendar, Inbox, Settings, User, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import Timeline from '@/components/Timeline';
 import Hangouts from '@/components/Hangouts';
 import Messages from '@/components/Messages';
@@ -9,6 +11,28 @@ import SettingsPage from '@/components/SettingsPage';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('timeline');
+  const { user, loading, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-white text-2xl">IS</span>
+          </div>
+          <p className="text-gray-500">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect to auth if not logged in
+  if (!user) {
+    navigate('/auth');
+    return null;
+  }
 
   const tabs = [
     { id: 'timeline', label: '🏠 Timeline', icon: null },
@@ -35,6 +59,11 @@ const Index = () => {
     }
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -42,8 +71,17 @@ const Index = () => {
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-light text-gray-900">Inner Space</h1>
-            <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-medium">IS</span>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={handleSignOut}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                title="Sign out"
+              >
+                <LogOut className="w-5 h-5 text-gray-600" />
+              </button>
+              <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-medium">IS</span>
+              </div>
             </div>
           </div>
         </div>

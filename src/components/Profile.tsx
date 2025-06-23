@@ -1,10 +1,17 @@
 
-import React from 'react';
-import { Edit, MapPin, Calendar, Star } from 'lucide-react';
+import React, { useState } from 'react';
+import { MapPin, Calendar, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { useProfile } from '@/hooks/useProfile';
+import { useAuth } from '@/contexts/AuthContext';
+import EditProfile from './EditProfile';
 
 const Profile = () => {
+  const { profile, loading } = useProfile();
+  const { user } = useAuth();
+  const [showEditProfile, setShowEditProfile] = useState(false);
+
   const badges = [
     { id: 1, emoji: '🌟', name: 'First Post', description: 'Welcome to Inner Space!' },
     { id: 2, emoji: '📚', name: 'Book Lover', description: 'Shared 5 book recommendations' },
@@ -19,6 +26,24 @@ const Profile = () => {
     { label: 'Badges', value: '4' },
   ];
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gray-100 rounded-full animate-pulse mb-4"></div>
+          <p className="text-gray-500">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const joinDate = profile?.created_at 
+    ? new Date(profile.created_at).toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long' 
+      })
+    : 'Recently';
+
   return (
     <div className="space-y-6">
       {/* Profile Header */}
@@ -28,34 +53,33 @@ const Profile = () => {
             {/* Avatar */}
             <div className="relative">
               <div className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center">
-                <span className="text-3xl text-white">✨</span>
-              </div>
-              <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-emerald-600 transition-colors">
-                <Edit className="w-4 h-4 text-white" />
+                <span className="text-3xl">{profile?.avatar_emoji || '✨'}</span>
               </div>
             </div>
 
             {/* Profile Info */}
             <div className="flex-1">
-              <h1 className="text-2xl font-light text-gray-900 mb-2">Alex Chen</h1>
+              <h1 className="text-2xl font-light text-gray-900 mb-2">
+                {profile?.username || user?.email?.split('@')[0] || 'User'}
+              </h1>
               <p className="text-gray-600 mb-4">
-                Living life one coffee at a time ☕ | Book enthusiast 📚 | Always up for an adventure
+                {profile?.bio || 'Welcome to Inner Space! ✨'}
               </p>
               
               <div className="flex items-center space-x-4 text-sm text-gray-500">
                 <div className="flex items-center space-x-1">
-                  <MapPin className="w-4 h-4" />
-                  <span>San Francisco, CA</span>
-                </div>
-                <div className="flex items-center space-x-1">
                   <Calendar className="w-4 h-4" />
-                  <span>Joined March 2024</span>
+                  <span>Joined {joinDate}</span>
                 </div>
               </div>
             </div>
 
             {/* Edit Button */}
-            <Button variant="outline" className="rounded-full">
+            <Button 
+              variant="outline" 
+              className="rounded-full"
+              onClick={() => setShowEditProfile(true)}
+            >
               Edit Profile
             </Button>
           </div>
@@ -122,28 +146,17 @@ const Profile = () => {
               <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
                 <span>💭</span>
               </div>
-              <span className="text-gray-600">Shared a thought about small circles</span>
-              <span className="text-gray-400">2h ago</span>
-            </div>
-            
-            <div className="flex items-center space-x-3 text-sm">
-              <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                <span>☕</span>
-              </div>
-              <span className="text-gray-600">Organized coffee meetup</span>
-              <span className="text-gray-400">1d ago</span>
-            </div>
-            
-            <div className="flex items-center space-x-3 text-sm">
-              <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                <span>🎯</span>
-              </div>
-              <span className="text-gray-600">Earned "Goal Setter" badge</span>
-              <span className="text-gray-400">3d ago</span>
+              <span className="text-gray-600">Joined Inner Space</span>
+              <span className="text-gray-400">Recently</span>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Profile Modal */}
+      {showEditProfile && (
+        <EditProfile onClose={() => setShowEditProfile(false)} />
+      )}
     </div>
   );
 };
